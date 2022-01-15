@@ -2,11 +2,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user_model");
 
-//create a new user
-const register = async (req, res) => {
-  //check to see if user already exists in the database
+exports.register = async (data, role, res) => {
 	try {
-		const userTaken = await validateEmail(req.body.email);
+		const userTaken = await validateEmail(data.email);
 		if (userTaken) {
 			return res.status(400).json({
 				email: "User with this email already exists",
@@ -14,13 +12,13 @@ const register = async (req, res) => {
 				success: false,
 			});
 		}
-    //hash password
-		const hashedPassword = await bcrypt.hash(req.body.password, 10);
+		const hashedPassword = await bcrypt.hash(data.password, 10);
 		const newUser = new User({
-			...req.body,
+			...data,
 			password: hashedPassword,
+			role,
 		});
-		await newUser.save()
+		await newUser.save();
 		return res
 			.status(201)
 			.json({ message: "New user created successfully", success: true });
@@ -28,11 +26,9 @@ const register = async (req, res) => {
 		return res.status(500).json({ message: error.message, success: false });
 	}
 }
-//login user to app
-const login = async (req, res) => {
-  // when user inputes email and password, we check to see if user already exists in the database using the email field
+exports.login = async (data, res) => {
 	try {
-		let { email, password } = req.body;
+		let { email, password } = data;
 		const user = await User.findOne({ email });
 		if (!user) {
 			res.status(404).json({
@@ -41,7 +37,6 @@ const login = async (req, res) => {
 				success: false,
 			});
 		}
-    //we also check if the password the user supplies is the same as the one in db
 		let isMatch = await bcrypt.compare(password, user.password);
 		if (isMatch) {
 			let token = jwt.sign(
@@ -83,13 +78,7 @@ const login = async (req, res) => {
 		});
 	}
 }
-const logout = async(req, res) => {
-  res.clearCookie('token')
-  return res.status(200).json({
-    message: 'User logged out'
-  })
-}
-//to see if the email exists in db
+
 const validateEmail = async (email) => {
 	let user = await User.findOne({ email });
 	if (user) {
@@ -98,8 +87,3 @@ const validateEmail = async (email) => {
 		return false;
 	}
 }
-
-module.exports = {
-	login,
-	register
-};

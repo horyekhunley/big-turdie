@@ -2,12 +2,7 @@ const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
 
-  firstName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  lastName: {
+  name: {
     type: String,
     required: true,
     trim: true,
@@ -15,6 +10,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    match: [/.+\@.+\..+/, 'Please fill a valid email address'],
     unique: true,
     trim: true,
   },
@@ -23,18 +19,13 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   updated: Date,
-  
-  dateOfBirth: {
-    type: Date,
-    required: true,
-  },
+
   password: {
     type: String,
     required: true,
   },
   imageUrl: {
     type: String,
-    required: true,
     default: 'no-image.png'
   },
 },
